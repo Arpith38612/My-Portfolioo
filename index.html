@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Arpith Thomas | Cybersecurity & Web Dev</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Arpith Thomas - BCA Student, Aspiring Cybersecurity Professional">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo">AT</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#workflow">Workflow</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="grid-lines"></div>
+      <div class="scanline"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-tag">// BCA Student · Bengaluru</p>
+      <h1 class="hero-title">
+        <span class="line1">Arpith</span>
+        <span class="line2">Thomas</span>
+      </h1>
+      <p class="hero-sub">Aspiring <span class="accent">Cybersecurity</span> Professional<br>& Web Developer</p>
+      <div class="hero-cta">
+        <a href="#projects" class="btn-primary">View Projects</a>
+        <a href="#contact" class="btn-outline">Get In Touch</a>
+      </div>
+    </div>
+    <div class="hero-terminal">
+      <div class="terminal-bar">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+        <span class="terminal-title">arpith@portfolio:~</span>
+      </div>
+      <div class="terminal-body">
+        <p><span class="prompt">$</span> whoami</p>
+        <p class="out">arpith_thomas</p>
+        <p><span class="prompt">$</span> cat skills.txt</p>
+        <p class="out">HTML · CSS · JavaScript</p>
+        <p class="out">Firebase · Git · GitHub</p>
+        <p class="out">Networking · Cybersecurity</p>
+        <p><span class="prompt">$</span> echo $STATUS</p>
+        <p class="out accent">Available for opportunities</p>
+        <p class="prompt blink-cursor">$ <span class="cursor">▋</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-label">01 / About</div>
+      <h2 class="section-title">Who I Am</h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I'm a <strong>BCA student</strong> with a strong passion for cybersecurity, web technologies, and problem solving. I enjoy learning how modern web applications work — and more importantly, how to <em>secure</em> them.</p>
+          <p>My goal is to bridge the gap between web development and cybersecurity, building things that are both functional and robust against modern threats.</p>
+          <div class="about-stats">
+            <div class="stat"><span class="stat-num">1+</span><span class="stat-label">Year Coding</span></div>
+            <div class="stat"><span class="stat-num">3+</span><span class="stat-label">Technologies</span></div>
+            <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Curiosity</span></div>
+          </div>
+        </div>
+        <div class="about-card">
+          <div class="card-header">
+            <span class="card-icon">🎯</span>
+            <strong>Current Focus</strong>
+          </div>
+          <ul class="focus-list">
+            <li>🔐 Cybersecurity Fundamentals</li>
+            <li>🌐 Full-Stack Web Development</li>
+            <li>⚙️ DevOps & CI/CD Workflows</li>
+            <li>📡 Networking Protocols</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="section dark" id="skills">
+    <div class="container">
+      <div class="section-label">02 / Skills</div>
+      <h2 class="section-title">What I Know</h2>
+      <div class="skills-grid">
+        <div class="skill-card">
+          <div class="skill-icon">🖥️</div>
+          <h3>Frontend</h3>
+          <div class="skill-tags">
+            <span>HTML5</span><span>CSS3</span><span>JavaScript</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">🔥</div>
+          <h3>Backend / DB</h3>
+          <div class="skill-tags">
+            <span>Firebase</span><span>Realtime DB</span><span>REST APIs</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">🛠️</div>
+          <h3>Dev Tools</h3>
+          <div class="skill-tags">
+            <span>Git</span><span>GitHub</span><span>VS Code</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <div class="skill-icon">🔒</div>
+          <h3>Cybersecurity</h3>
+          <div class="skill-tags">
+            <span>Networking</span><span>CIA Triad</span><span>OWASP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="section" id="projects">
+    <div class="container">
+      <div class="section-label">03 / Projects</div>
+      <h2 class="section-title">What I've Built</h2>
+      <div class="projects-grid">
+        <div class="project-card featured">
+          <div class="project-top">
+            <span class="project-badge">Featured</span>
+            <span class="project-tech">HTML · CSS · JS · Firebase</span>
+          </div>
+          <h3>Personal Portfolio Website</h3>
+          <p>A single-page responsive portfolio website built with HTML, CSS, and JavaScript. The contact form stores messages to Firebase Realtime Database. Deployed via GitHub Pages following a proper Git workflow.</p>
+          <div class="project-links">
+            <a href="#" class="proj-link">🔗 Live Site</a>
+            <a href="#" class="proj-link">📂 GitHub</a>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-top">
+            <span class="project-tech">Coming Soon</span>
+          </div>
+          <h3>Cybersecurity Lab Notes</h3>
+          <p>A personal knowledge base documenting networking concepts, security tools, and CTF writeups as I continue learning.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section class="section dark" id="workflow">
+    <div class="container">
+      <div class="section-label">04 / Workflow</div>
+      <h2 class="section-title">My Dev Workflow</h2>
+      <p class="workflow-intro">Following the Modern Web Development Workflow as part of my BCA coursework:</p>
+      <div class="workflow-steps">
+        <div class="wf-step">
+          <div class="wf-num">01</div>
+          <div class="wf-icon">💻</div>
+          <h4>Local Git Repo</h4>
+          <p>Write HTML, CSS, JS locally. Commit changes using Git for version control.</p>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">
+          <div class="wf-num">02</div>
+          <div class="wf-icon">🐙</div>
+          <h4>GitHub</h4>
+          <p>Push code to GitHub repository. Track changes, branches, and collaboration.</p>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">
+          <div class="wf-num">03</div>
+          <div class="wf-icon">⚙️</div>
+          <h4>CI/CD Pipeline</h4>
+          <p>Automated testing & linting via GitHub Actions on every push.</p>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">
+          <div class="wf-num">04</div>
+          <div class="wf-icon">🚀</div>
+          <h4>Hosting</h4>
+          <p>Deployed on GitHub Pages with Firebase backend. Custom domain via DNS.</p>
+        </div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">
+          <div class="wf-num">05</div>
+          <div class="wf-icon">🌐</div>
+          <h4>Web Browser</h4>
+          <p>Live site accessible to anyone. End-to-end pipeline complete.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section" id="contact">
+    <div class="container">
+      <div class="section-label">05 / Contact</div>
+      <h2 class="section-title">Get In Touch</h2>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <p>Whether you're a recruiter, fellow student, or just curious — feel free to drop a message. I'll get back to you!</p>
+          <div class="contact-links">
+            <a href="#" class="contact-item">
+              <span class="c-icon">💼</span> LinkedIn
+            </a>
+            <a href="#" class="contact-item">
+              <span class="c-icon">🐙</span> GitHub
+            </a>
+            <a href="mailto:arpith@email.com" class="contact-item">
+              <span class="c-icon">📧</span> Email
+            </a>
+          </div>
+        </div>
+        <form id="contactForm" class="contact-form" novalidate>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Your Name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="your@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" placeholder="Your message..." rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary full-width" id="submitBtn">
+            <span id="btnText">Send Message</span>
+          </button>
+          <p id="formStatus" class="form-status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-logo">AT</span>
+      <p>© 2026 Arpith Thomas · Built with HTML, CSS, JS & Firebase · Deployed on GitHub Pages</p>
+      <p class="footer-workflow">📋 Following Modern Web Dev Workflow | Local Git → GitHub → CI/CD → Hosting → Browser</p>
+    </div>
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

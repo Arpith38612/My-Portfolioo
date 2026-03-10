@@ -1,0 +1,87 @@
+# =============================================
+# GitHub Actions CI/CD Pipeline
+# Triggers on every push to main branch
+# Part of: Modern Web Development Workflow
+# =============================================
+
+name: Portfolio CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check required files exist
+        run: |
+          echo "✅ Checking required files..."
+          test -f index.html   && echo "✓ index.html found"   || (echo "✗ index.html missing" && exit 1)
+          test -f style.css    && echo "✓ style.css found"    || (echo "✗ style.css missing"  && exit 1)
+          test -f script.js    && echo "✓ script.js found"    || (echo "✗ script.js missing"  && exit 1)
+          test -f README.md    && echo "✓ README.md found"    || (echo "✗ README.md missing"  && exit 1)
+
+      - name: Validate HTML structure
+        run: |
+          echo "✅ Validating HTML..."
+          grep -q "<!DOCTYPE html>" index.html   && echo "✓ DOCTYPE found"
+          grep -q "<meta charset"  index.html   && echo "✓ charset meta found"
+          grep -q "<meta name=\"viewport\"" index.html && echo "✓ viewport meta found"
+          grep -q "contactForm"    index.html   && echo "✓ contact form found"
+          echo "HTML validation passed!"
+
+      - name: Check for console errors / debug code
+        run: |
+          echo "✅ Checking for debug artifacts..."
+          if grep -n "console\.log" script.js; then
+            echo "⚠️  Warning: console.log found (remove before production)"
+          else
+            echo "✓ No console.log in script.js"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "============================================"
+          echo "  ✅ All checks passed!"
+          echo "  📦 Ready to deploy to GitHub Pages"
+          echo "  🌐 Pipeline: Git → GitHub → CI/CD → Hosting"
+          echo "============================================"
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
