@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Arpith Thomas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0f1e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #0d1b2a;
+      border-bottom: 1px solid #00ff9d33;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      color: #00ff9d;
+      font-size: 1.2rem;
+    }
+
+    header span {
+      color: #888;
+      font-size: 0.85rem;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #ff4d4d;
+      color: #ff4d4d;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #ff4d4d;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: #0d1b2a;
+      border: 1px solid #00ff9d33;
+      border-radius: 10px;
+      padding: 20px 30px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .stat-card h2 {
+      color: #00ff9d;
+      font-size: 2rem;
+    }
+
+    .stat-card p {
+      color: #888;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .messages-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .messages-header h3 {
+      color: #00ff9d;
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid #00ff9d44;
+      color: #00ff9d;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+
+    .refresh-btn:hover {
+      background: #00ff9d22;
+    }
+
+    .message-card {
+      background: #0d1b2a;
+      border: 1px solid #00ff9d22;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: border 0.3s;
+    }
+
+    .message-card:hover {
+      border-color: #00ff9d55;
+    }
+
+    .message-card .meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .message-card .name {
+      color: #00ff9d;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .message-card .date {
+      color: #555;
+      font-size: 0.8rem;
+    }
+
+    .message-card .email {
+      color: #888;
+      font-size: 0.82rem;
+      margin-bottom: 10px;
+    }
+
+    .message-card .text {
+      color: #ccc;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border-left: 2px solid #00ff9d44;
+      padding-left: 12px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #555;
+      padding: 60px 0;
+      font-size: 0.9rem;
+    }
+
+    .loading {
+      text-align: center;
+      color: #00ff9d;
+      padding: 60px 0;
+      font-size: 0.9rem;
+    }
+  </style>
+<script nonce="xiz80iJfJTd8OSB1" type="text/javascript" src="//self.adblockultimate.net/manager.js?tm=1774180377&amp;lg=true" guid="{EE7A232E-1DA0-4A8F-BCAD-3C922AD565AF}" inwhitelist="false" status="true" autohide="true"></script></head>
+<body>
+
+  <header>
+    <h1>⚡ Admin Dashboard</h1>
+    <span>Arpith Thomas Portfolio</span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="container">
+
+    <div class="stats">
+      <div class="stat-card">
+        <h2 id="totalCount">-</h2>
+        <p>Total Messages</p>
+      </div>
+      <div class="stat-card">
+        <h2 id="todayCount">-</h2>
+        <p>Today's Messages</p>
+      </div>
+    </div>
+
+    <div class="messages-header">
+      <h3>📩 RECEIVED MESSAGES</h3>
+      <button class="refresh-btn" onclick="loadMessages()">↻ Refresh</button>
+    </div>
+
+    <div id="messagesList">
+      <div class="loading">Loading messages...</div>
+    </div>
+
+  </div>
+
+  <script>
+    // Check if logged in
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      window.location.href = 'admin.html';
+    }
+
+    async function loadMessages() {
+      const list = document.getElementById('messagesList');
+      list.innerHTML = '<div class="loading">Loading messages...</div>';
+
+      try {
+        const response = await fetch('https://portfolio-backend-0uic.onrender.com/admin/messages', {
+          headers: { 'Authorization': token }
+        });
+
+        const messages = await response.json();
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+          list.innerHTML = '<div class="empty">No messages yet.</div>';
+          document.getElementById('totalCount').textContent = '0';
+          document.getElementById('todayCount').textContent = '0';
+          return;
+        }
+
+        // Stats
+        document.getElementById('totalCount').textContent = messages.length;
+        const today = new Date().toDateString();
+        const todayMsgs = messages.filter(m => new Date(m.created_at).toDateString() === today);
+        document.getElementById('todayCount').textContent = todayMsgs.length;
+
+        // Render messages
+        list.innerHTML = messages.map(m => {
+          const date = new Date(m.created_at).toLocaleString('en-IN');
+          return `
+            <div class="message-card">
+              <div class="meta">
+                <span class="name">👤 ${m.name}</span>
+                <span class="date">${date}</span>
+              </div>
+              <div class="email">📧 ${m.email}</div>
+              <div class="text">${m.message}</div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        list.innerHTML = '<div class="empty">❌ Failed to load messages. Try refreshing.</div>';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      window.location.href = 'admin.html';
+    }
+
+    // Load on page open
+    loadMessages();
+  </script>
+
+</body>
+</html>
