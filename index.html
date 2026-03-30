@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PhishGuard — URL Phishing Detector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c14;
+      --bg2: #0d1424;
+      --bg3: #111827;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --orange: #f97316;
+      --red: #ef4444;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --border: rgba(99,102,241,0.15);
+      --card: rgba(13,20,36,0.9);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 40px;
+      background: rgba(8,12,20,0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      animation: slideDown 0.6s ease both;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-60px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .nav-brand-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-brand-name span { color: var(--accent2); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-badge {
+      font-size: 0.72rem;
+      background: rgba(99,102,241,0.12);
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .nav-admin {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      transition: color 0.3s;
+    }
+
+    .nav-admin:hover { color: var(--accent2); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 60px;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.2);
+      color: var(--accent2);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 1px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    @keyframes fadeUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      animation: fadeUp 0.8s ease 0.3s both;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--accent2), #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    /* ── SCAN BOX ── */
+    .scan-box {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 60px rgba(99,102,241,0.08), 0 20px 60px rgba(0,0,0,0.4);
+      animation: fadeUp 0.8s ease 0.5s both;
+      margin-bottom: 60px;
+    }
+
+    .scan-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .scan-input-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .scan-input {
+      flex: 1;
+      background: rgba(8,12,20,0.8);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: 'Space Mono', monospace;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    .scan-input::placeholder { color: var(--muted); }
+
+    .scan-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+
+    .scan-btn {
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    }
+
+    .scan-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+    }
+
+    .scan-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .scan-examples {
+      margin-top: 14px;
+      text-align: left;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .scan-examples span {
+      color: var(--accent2);
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      transition: opacity 0.2s;
+    }
+
+    .scan-examples span:hover { opacity: 0.7; }
+
+    /* ── RESULT ── */
+    #result {
+      width: 100%;
+      max-width: 680px;
+      display: none;
+      animation: fadeUp 0.5s ease both;
+      margin-bottom: 60px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .result-header {
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-url {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      word-break: break-all;
+      max-width: 400px;
+    }
+
+    .risk-badge {
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .risk-safe { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .risk-low { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+    .risk-medium { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+    .risk-high { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+    .result-body { padding: 28px; }
+
+    .score-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .score-circle {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid;
+      flex-shrink: 0;
+    }
+
+    .score-num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .score-info h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .score-info p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .flags-section h4 {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 14px;
+    }
+
+    .flag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: #fca5a5;
+      line-height: 1.5;
+    }
+
+    .flag-icon { flex-shrink: 0; }
+
+    .no-flags {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #86efac;
+    }
+
+    /* ── STATS ── */
+    .stats-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 60px;
+      z-index: 1;
+      position: relative;
+      animation: fadeUp 0.8s ease 0.6s both;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      text-align: center;
+    }
+
+    .stat-card .num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent2);
+      display: block;
+    }
+
+    .stat-card .lbl {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      width: 100%;
+      max-width: 680px;
+      z-index: 1;
+      position: relative;
+      margin-bottom: 60px;
+      animation: fadeUp 0.8s ease 0.7s both;
+    }
+
+    .how-section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .check-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: border-color 0.3s;
+    }
+
+    .check-item:hover { border-color: rgba(99,102,241,0.3); color: var(--text); }
+
+    .check-icon {
+      width: 32px; height: 32px;
+      background: rgba(99,102,241,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(99,102,241,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer p {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    footer span { color: var(--accent2); }
+
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .scan-input-row { flex-direction: column; }
+      .checks-grid { grid-template-columns: 1fr; }
+      .stats-row { flex-direction: column; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo-icon">🛡️</div>
+    <span class="nav-brand-name">Phish<span>Guard</span></span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-badge">v1.0 BETA</span>
+    <a href="admin.html" class="nav-admin">Admin →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+
+  <div class="hero-badge">AI-Powered Phishing Detection</div>
+
+  <h1>
+    Is this URL<br>
+    <span class="gradient">safe to visit?</span>
+  </h1>
+
+  <p class="hero-sub">
+    PhishGuard analyzes URLs in real-time using 8+ security checks to detect phishing attempts, suspicious patterns, and dangerous links.
+  </p>
+
+  <!-- SCAN BOX -->
+  <div class="scan-box">
+    <div class="scan-label">Enter URL to analyze</div>
+    <div class="scan-input-row">
+      <input
+        type="text"
+        id="urlInput"
+        class="scan-input"
+        placeholder="https://example.com"
+        autocomplete="off"
+      />
+      <button class="scan-btn" id="scanBtn" onclick="analyze()">
+        🔍 Analyze
+      </button>
+    </div>
+    <div class="scan-examples">
+      Try: 
+      <span onclick="setExample('http://paypa1.com/login/verify?account=update')">suspicious URL</span>
+      &nbsp;·&nbsp;
+      <span onclick="setExample('https://google.com')">safe URL</span>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result">
+    <div class="result-card">
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Analyzing URL...</div>
+      </div>
+      <div id="resultContent"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="num">8+</span>
+      <div class="lbl">Security Checks</div>
+    </div>
+    <div class="stat-card">
+      <span class="num" id="totalScans">—</span>
+      <div class="lbl">URLs Scanned</div>
+    </div>
+    <div class="stat-card">
+      <span class="num">100%</span>
+      <div class="lbl">Free to Use</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section">
+    <h2>// What we check</h2>
+    <div class="checks-grid">
+      <div class="check-item">
+        <div class="check-icon">🔒</div>
+        HTTPS vs HTTP protocol
+      </div>
+      <div class="check-item">
+        <div class="check-icon">🌐</div>
+        IP address as domain
+      </div>
+      <div class="check-item">
+        <div class="check-icon">⚠️</div>
+        Suspicious keywords
+      </div>
+      <div class="check-item">
+        <div class="check-icon">📏</div>
+        URL length analysis
+      </div>
+      <div class="check-item">
+        <div class="check-icon">🔗</div>
+        Subdomain count
+      </div>
+      <div class="check-item">
+        <div class="check-icon">🎭</div>
+        Lookalike domains
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✂️</div>
+        Special characters
+      </div>
+      <div class="check-item">
+        <div class="check-icon">➖</div>
+        Hyphen patterns
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built by <span>Arpith Thomas</span> · PhishGuard v1.0 · Node.js + PostgreSQL + GitHub Pages</p>
+</footer>
+
+<script>
+  const API = 'https://portfolio-backend-0uic.onrender.com';
+
+  function setExample(url) {
+    document.getElementById('urlInput').value = url;
+  }
+
+  // Load total scans count
+  async function loadStats() {
+    try {
+      const res = await fetch(`${API}/admin/scans`, {
+        headers: { 'Authorization': 'arpith-admin-token' }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        document.getElementById('totalScans').textContent = data.length;
+      }
+    } catch {}
+  }
+
+  loadStats();
+
+  async function analyze() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) {
+      alert('Please enter a URL!');
+      return;
+    }
+
+    const btn = document.getElementById('scanBtn');
+    const result = document.getElementById('result');
+    const loading = document.getElementById('loadingOverlay');
+    const content = document.getElementById('resultContent');
+
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+    result.style.display = 'block';
+    loading.style.display = 'flex';
+    content.innerHTML = '';
+
+    try {
+      const res = await fetch(`${API}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await res.json();
+      loading.style.display = 'none';
+
+      if (data.error) {
+        content.innerHTML = `<div style="padding:28px;color:#f87171;font-family:'Space Mono',monospace;font-size:0.85rem;">❌ ${data.error}</div>`;
+        return;
+      }
+
+      const { risk_score, risk_level, flags } = data;
+
+      // Color based on risk
+      const colors = {
+        SAFE: { color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', label: '✅ SAFE' },
+        LOW: { color: '#eab308', bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.3)', label: '⚠️ LOW RISK' },
+        MEDIUM: { color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.3)', label: '🔶 MEDIUM RISK' },
+        HIGH: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', label: '🚨 HIGH RISK' }
+      };
+
+      const c = colors[risk_level] || colors.SAFE;
+
+      const messages = {
+        SAFE: 'This URL appears to be safe. No major phishing indicators detected.',
+        LOW: 'This URL has some minor suspicious indicators. Proceed with caution.',
+        MEDIUM: 'This URL shows multiple phishing patterns. Be very careful!',
+        HIGH: 'This URL is highly suspicious! It is likely a phishing attempt. Do NOT visit!'
+      };
+
+      const flagsHTML = flags.length === 0
+        ? `<div class="no-flags">✅ No suspicious patterns detected!</div>`
+        : flags.map(f => `
+            <div class="flag-item">
+              <span class="flag-icon">⚠️</span>
+              <span>${f}</span>
+            </div>
+          `).join('');
+
+      content.innerHTML = `
+        <div class="result-header">
+          <div class="result-url">${url}</div>
+          <div class="risk-badge risk-${risk_level.toLowerCase()}">${c.label}</div>
+        </div>
+        <div class="result-body">
+          <div class="score-section">
+            <div class="score-circle" style="border-color:${c.color};background:${c.bg};">
+              <span class="score-num" style="color:${c.color};">${risk_score}</span>
+              <span class="score-label">/ 100</span>
+            </div>
+            <div class="score-info">
+              <h3 style="color:${c.color};">${risk_level} RISK</h3>
+              <p>${messages[risk_level]}</p>
+            </div>
+          </div>
+          <div class="flags-section">
+            <h4>Detected Issues (${flags.length})</h4>
+            ${flagsHTML}
+          </div>
+        </div>
+      `;
+
+      loadStats();
+
+    } catch (error) {
+      loading.style.display = 'none';
+      content.innerHTML = `<div style="padding:28px;color:#f87171;font-family:'Space Mono',monospace;font-size:0.85rem;">❌ Cannot connect to server. Please try again.</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔍 Analyze';
+    }
+  }
+
+  // Enter key support
+  document.getElementById('urlInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') analyze();
+  });
+</script>
+
+</body>
+</html>
