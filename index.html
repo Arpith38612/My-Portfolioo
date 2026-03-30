@@ -1187,17 +1187,8 @@ Write a concise 3-4 sentence plain-English explanation for a non-technical user.
 Keep it direct, clear, and conversational. No markdown, no bullet points, just clear sentences.`;
 
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }]
-          })
-        });
-        const d = await res.json();
-        const text = d.content?.map(c => c.text || '').join('') || 'Analysis complete.';
+        const text = generateSmartAI(data);
+typeText(document.getElementById('aiChatBox'), text);
         typeText(document.getElementById('aiChatBox'), text);
       } catch {
         document.getElementById('aiChatBox').textContent = 'AI analysis unavailable. Review the threat signals above manually.';
@@ -1242,17 +1233,9 @@ User's question: "${question}"
 Answer in 2-4 clear, helpful sentences. No markdown, just plain text. Be specific to this URL.`;
 
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }]
-          })
-        });
-        const d = await res.json();
-        const text = d.content?.map(c => c.text || '').join('') || 'Unable to answer.';
+        const text = generateSmartAI(currentScanData, question);
+typeText(aiBox, text);
+btn.disabled = false; || 'Unable to answer.';
         typeText(aiBox, text);
       } catch {
         aiBox.textContent = 'AI unavailable. Please try again.';
@@ -1309,7 +1292,46 @@ Answer in 2-4 clear, helpful sentences. No markdown, just plain text. Be specifi
       t.style.display = 'block';
       setTimeout(() => t.style.display = 'none', 3000);
     }
+    function generateSmartAI(data, question = null) {
+  const level = data.risk_level;
+  const flags = data.flags || [];
 
+  let response = "";
+
+  if (level === "HIGH") {
+    response = "🚨 This website is highly dangerous and likely a phishing attempt trying to steal your data.";
+  } else if (level === "MEDIUM") {
+    response = "⚠️ This website shows multiple suspicious signals.";
+  } else if (level === "LOW") {
+    response = "This website has minor suspicious indicators. Be cautious.";
+  } else {
+    response = "This website appears safe.";
+  }
+
+  if (flags.length > 0) {
+    response += " It was flagged because: " + flags.slice(0, 2).join(", ") + ".";
+  }
+
+  if (level !== "SAFE") {
+    response += " Avoid entering passwords or personal data.";
+  }
+
+  if (question) {
+    const q = question.toLowerCase();
+
+    if (q.includes("safe")) {
+      response += " This is not fully safe.";
+    }
+    if (q.includes("phishing")) {
+      response += " It matches phishing patterns.";
+    }
+    if (q.includes("what to do")) {
+      response += " Close the site immediately.";
+    }
+  }
+
+  return response;
+}
     loadStats();
   </script>
 
