@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishGuard — Cybersecurity Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060a10;
+    --panel: #0d1520;
+    --border: #1a2d44;
+    --accent: #00ffe0;
+    --accent2: #005fff;
+    --accent3: #ff3e6c;
+    --text: #c8dae8;
+    --dim: #4a6272;
+    --success: #00e676;
+    --warn: #ffab00;
+    --danger: #ff3e6c;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,255,224,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,224,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  header {
+    position: relative; z-index: 10;
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(180deg, rgba(0,95,255,0.06) 0%, transparent 100%);
+  }
+  .logo-mark {
+    width: 44px; height: 44px;
+    border: 2px solid var(--accent); border-radius: 10px;
+    display: grid; place-items: center; font-size: 22px;
+    box-shadow: 0 0 18px rgba(0,255,224,0.3); flex-shrink: 0;
+  }
+  header h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.04em; color: #fff; }
+  header h1 span { color: var(--accent); }
+  .badge {
+    margin-left: auto; font-family: var(--mono); font-size: 0.65rem;
+    padding: 4px 10px; border: 1px solid var(--accent); border-radius: 20px;
+    color: var(--accent); letter-spacing: 0.1em; opacity: 0.7;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px; position: relative; z-index: 1;
+    padding: 28px; max-width: 1400px; margin: 0 auto;
+  }
+  .card-chat { grid-column: 1 / -1; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; position: relative; overflow: hidden; transition: border-color 0.2s;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; border-radius: 14px 14px 0 0;
+  }
+  .card-chat::before { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .card-email::before { background: linear-gradient(90deg, var(--accent), #00c9ff); }
+  .card-pass::before { background: linear-gradient(90deg, #b44fff, var(--accent2)); }
+  .card-fraud::before { background: linear-gradient(90deg, var(--accent3), #ff9900); }
+  .card:hover { border-color: rgba(0,255,224,0.2); }
+  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 18px; flex-shrink: 0;
+  }
+  .card-chat .card-icon { background: rgba(0,95,255,0.15); border: 1px solid rgba(0,95,255,0.3); }
+  .card-email .card-icon { background: rgba(0,255,224,0.1); border: 1px solid rgba(0,255,224,0.3); }
+  .card-pass .card-icon { background: rgba(180,79,255,0.1); border: 1px solid rgba(180,79,255,0.3); }
+  .card-fraud .card-icon { background: rgba(255,62,108,0.1); border: 1px solid rgba(255,62,108,0.3); }
+  .card-title { font-size: 1rem; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
+  #chatbot-wrapper {
+    display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start;
+  }
+  @media (max-width: 700px) { #chatbot-wrapper { grid-template-columns: 1fr; } }
+  #chatbot-messages {
+    background: #080e18; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; height: 300px; overflow-y: auto;
+    font-family: var(--mono); font-size: 0.78rem; line-height: 1.6; scroll-behavior: smooth;
+  }
+  #chatbot-messages::-webkit-scrollbar { width: 4px; }
+  #chatbot-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .msg { padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.user { background: rgba(0,95,255,0.15); border-left: 3px solid var(--accent2); color: #c8dde8; }
+  .msg.bot { background: rgba(0,255,224,0.06); border-left: 3px solid var(--accent); color: var(--text); }
+  .msg.thinking { opacity: 0.5; font-style: italic; }
+  .chat-controls { display: flex; flex-direction: column; gap: 10px; }
+  .chat-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .hint-chip {
+    font-family: var(--mono); font-size: 0.65rem; padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 20px; color: var(--dim);
+    cursor: pointer; transition: all 0.15s; background: transparent;
+  }
+  .hint-chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,255,224,0.05); }
+  input[type="text"], input[type="password"], textarea {
+    width: 100%; background: #080e18; border: 1px solid var(--border); border-radius: 8px;
+    padding: 11px 14px; color: var(--text); font-family: var(--mono); font-size: 0.82rem;
+    outline: none; transition: border-color 0.2s; resize: vertical;
+  }
+  input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,255,224,0.07);
+  }
+  textarea { min-height: 100px; }
+  .btn {
+    display: block; width: 100%; padding: 11px 16px; background: transparent;
+    border: 1px solid var(--accent); border-radius: 8px; color: var(--accent);
+    font-family: var(--sans); font-weight: 600; font-size: 0.85rem;
+    letter-spacing: 0.06em; cursor: pointer; transition: all 0.2s;
+    text-transform: uppercase; position: relative; overflow: hidden;
+  }
+  .btn::before {
+    content: ''; position: absolute; inset: 0; background: var(--accent);
+    transform: translateX(-101%); transition: transform 0.2s; z-index: 0;
+  }
+  .btn:hover::before { transform: translateX(0); }
+  .btn:hover { color: #000; }
+  .btn span { position: relative; z-index: 1; }
+  .result-box {
+    margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+    font-family: var(--mono); font-size: 0.8rem; background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border); display: none; line-height: 1.6; white-space: pre-wrap;
+  }
+  .result-box.show { display: block; }
+  .result-box.ok { border-color: var(--success); color: var(--success); }
+  .result-box.warn { border-color: var(--warn); color: var(--warn); }
+  .result-box.danger { border-color: var(--danger); color: var(--danger); }
+  .strength-track { width: 100%; height: 5px; background: var(--border); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+  #strength-fill { height: 100%; width: 0%; border-radius: 3px; transition: width 0.35s, background 0.35s; }
+  .strength-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  #strength-label { font-family: var(--mono); font-size: 0.75rem; color: var(--dim); }
+  .strength-tips { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tip { font-family: var(--mono); font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--dim); transition: all 0.2s; }
+  .tip.pass { border-color: var(--success); color: var(--success); }
+  .checklist { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px;
+    background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: border-color 0.15s; user-select: none;
+  }
+  .check-item:hover { border-color: rgba(255,62,108,0.3); }
+  .check-item.checked { border-color: rgba(255,62,108,0.4); background: rgba(255,62,108,0.05); }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-box {
+    width: 18px; height: 18px; border: 1.5px solid var(--dim); border-radius: 4px;
+    flex-shrink: 0; margin-top: 1px; display: grid; place-items: center; transition: all 0.15s;
+  }
+  .check-item.checked .check-box { background: var(--danger); border-color: var(--danger); }
+  .check-box::after { content: 'X'; color: #fff; font-size: 10px; opacity: 0; transition: opacity 0.1s; font-family: var(--mono); }
+  .check-item.checked .check-box::after { opacity: 1; }
+  .check-text { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+  .check-text strong { display: block; font-weight: 600; color: #fff; margin-bottom: 1px; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .offline-badge {
+    font-family: var(--mono); font-size: 0.6rem; padding: 2px 8px;
+    border: 1px solid var(--success); border-radius: 20px; color: var(--success);
+    letter-spacing: 0.08em; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .offline-badge::before { content:'●'; font-size: 0.5rem; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">🛡️</div>
+  <h1>Phish<span>Guard</span></h1>
+  <div class="badge">SECURITY TOOLKIT v2.0</div>
+</header>
+
+<div class="grid">
+
+  <div class="card card-chat">
+    <div class="card-header">
+      <div class="card-icon">🤖</div>
+      <div class="card-title">AI Security Assistant &nbsp; <span class="offline-badge">OFFLINE · NO API NEEDED</span></div>
+    </div>
+    <div id="chatbot-wrapper">
+      <div>
+        <div id="chatbot-messages">
+          <div class="msg bot">Hello! I am your cybersecurity AI assistant — running 100% offline, no API needed! 🔒
+
+I can answer questions about:
+• Phishing & social engineering
+• Passwords & authentication (2FA, MFA)
+• Malware, ransomware & viruses
+• VPN, firewall & network security
+• Email safety & scams
+• Data breaches & privacy
+• Safe browsing & HTTPS
+• Dark web, encryption, IoT & more!
+
+Type your question or click a topic chip.</div>
+        </div>
+      </div>
+      <div class="chat-controls">
+        <div style="color: var(--dim); font-family: var(--mono); font-size:0.65rem; margin-bottom:2px;">QUICK TOPICS</div>
+        <div class="chat-hints">
+          <button class="hint-chip" onclick="setPrompt('What is phishing?')">What is phishing?</button>
+          <button class="hint-chip" onclick="setPrompt('How to spot a fake email?')">Fake email?</button>
+          <button class="hint-chip" onclick="setPrompt('Best password practices')">Password tips</button>
+          <button class="hint-chip" onclick="setPrompt('What is 2FA?')">What is 2FA?</button>
+          <button class="hint-chip" onclick="setPrompt('What is ransomware?')">Ransomware</button>
+          <button class="hint-chip" onclick="setPrompt('What is a VPN?')">VPN</button>
+          <button class="hint-chip" onclick="setPrompt('What is malware?')">Malware</button>
+          <button class="hint-chip" onclick="setPrompt('How to stay safe online?')">Stay safe online</button>
+          <button class="hint-chip" onclick="setPrompt('What is a data breach?')">Data breach</button>
+          <button class="hint-chip" onclick="setPrompt('What is social engineering?')">Social engineering</button>
+          <button class="hint-chip" onclick="setPrompt('What is a firewall?')">Firewall</button>
+          <button class="hint-chip" onclick="setPrompt('What is HTTPS?')">HTTPS</button>
+          <button class="hint-chip" onclick="setPrompt('What is encryption?')">Encryption</button>
+          <button class="hint-chip" onclick="setPrompt('Public wifi danger')">Public WiFi</button>
+          <button class="hint-chip" onclick="setPrompt('What is a DDoS attack?')">DDoS</button>
+          <button class="hint-chip" onclick="setPrompt('What is identity theft?')">Identity theft</button>
+        </div>
+        <input type="text" id="chatbot-input" placeholder="Ask any security question..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="btn" onclick="sendMessage()"><span>Send Message</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-email">
+    <div class="card-header">
+      <div class="card-icon">📧</div>
+      <div class="card-title">Email Header Analyzer</div>
+    </div>
+    <textarea id="email-header-input" placeholder="Paste full email headers here..."></textarea>
+    <button class="btn" onclick="analyzeEmail()" style="margin-top:10px;"><span>Analyze Headers</span></button>
+    <div class="result-box" id="email-result"></div>
+  </div>
+
+  <div class="card card-pass">
+    <div class="card-header">
+      <div class="card-icon">🔐</div>
+      <div class="card-title">Password Strength Checker</div>
+    </div>
+    <input type="password" id="password-input" placeholder="Enter a password to test..." oninput="checkPassword()">
+    <div class="strength-track"><div id="strength-fill"></div></div>
+    <div class="strength-meta">
+      <div id="strength-label">Enter a password</div>
+    </div>
+    <div class="strength-tips">
+      <div class="tip" id="tip-len">8+ chars</div>
+      <div class="tip" id="tip-upper">Uppercase</div>
+      <div class="tip" id="tip-num">Number</div>
+      <div class="tip" id="tip-sym">Symbol</div>
+    </div>
+  </div>
+
+  <div class="card card-fraud">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Fraud Detection Checklist</div>
+    </div>
+    <div class="checklist">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" class="fraud-check">
+        <div class="check-box"></div>
+        <div class="check-text"><strong>Requests OTP / PIN</strong>Legitimate orgs never ask for your OTP</div>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" class="fraud-check">
+        <div class="check-box"></div>
+        <div class="check-text"><strong>Suspicious or misspelled URL</strong>e.g. amaz0n.com, paypai.com</div>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" class="fraud-check">
+        <div class="check-box"></div>
+        <div class="check-text"><strong>Creates urgency / panic</strong>"Act now or your account is closed!"</div>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" class="fraud-check">
+        <div class="check-box"></div>
+        <div class="check-text"><strong>Asks for payment via gift cards</strong>Common in scam calls</div>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" class="fraud-check">
+        <div class="check-box"></div>
+        <div class="check-text"><strong>Poor grammar / spelling</strong>Many phishing emails have obvious errors</div>
+      </label>
+    </div>
+    <button class="btn" onclick="checkFraud()"><span>Run Fraud Analysis</span></button>
+    <div class="result-box" id="fraud-result"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  OFFLINE AI KNOWLEDGE BASE — Zero API, Zero cost
+//  Smart keyword matching engine with 60+ topics
+// ============================================================
+const KB = [
+  {
+    patterns: ['what is phishing','phishing meaning','phishing definition','explain phishing','phishing attack'],
+    answer: `PHISHING\n\nPhishing is a cyberattack where criminals impersonate trusted entities (banks, companies, government) to trick you into revealing sensitive info like passwords, credit cards, or OTPs.\n\nTypes of phishing:\n• Email phishing — fake emails with malicious links\n• Spear phishing — targeted attack on a specific person\n• Smishing — phishing via SMS text messages\n• Vishing — phishing via phone calls\n• Whaling — targeting high-level executives\n\nHow to recognize it:\n✗ Urgent or threatening language\n✗ Generic greetings ("Dear Customer")\n✗ Misspelled domains (paypa1.com, amaz0n.com)\n✗ Suspicious attachments or links\n✗ Requests for passwords/OTPs\n\nIf you suspect phishing: Don't click any links. Report the email. Contact the real company directly.`
+  },
+  {
+    patterns: ['spear phishing','targeted phishing'],
+    answer: `SPEAR PHISHING\n\nSpear phishing is a highly targeted phishing attack aimed at a specific individual or organization.\n\nUnlike regular phishing (sent to millions), spear phishing:\n• Uses your real name, job title, or company info\n• May reference recent events you're involved in\n• Appears to come from someone you know\n\nExample: "Hi [Your Name], I'm from IT. Please reset your password at this link."\n\nHow attackers gather info:\n→ LinkedIn, social media, company websites\n→ Previous data breaches\n→ Public records\n\nDefence:\n✓ Always verify requests via a separate channel\n✓ Never click links in unexpected emails\n✓ Enable 2FA on all accounts`
+  },
+  {
+    patterns: ['how to spot fake email','identify phishing email','phishing email signs','suspicious email','fake email'],
+    answer: `HOW TO SPOT A PHISHING EMAIL\n\nRED FLAGS to watch for:\n\n1. Sender Address — Check the full email domain.\n   Legit: support@amazon.com\n   Fake:  support@amazon-help.net\n\n2. Urgent Language — "Your account will be suspended in 24 hours!"\n\n3. Generic Greeting — "Dear Customer" instead of your real name\n\n4. Suspicious Links — Hover over links before clicking. Check the actual URL.\n\n5. Attachments — Unexpected .zip, .exe, .docx files can contain malware\n\n6. Grammar & Spelling — Poor English is a major red flag\n\n7. Requests for Sensitive Info — Legit companies NEVER ask for passwords via email\n\n8. Mismatched Branding — Logo looks slightly off, wrong colors/fonts\n\nRULE: When in doubt, don't click. Go directly to the official website instead.`
+  },
+  {
+    patterns: ['smishing','sms phishing','text message scam','fake sms'],
+    answer: `SMISHING (SMS Phishing)\n\nSmishing = phishing attacks delivered via SMS/text messages.\n\nCommon examples:\n• "Your parcel is held. Track here: [fake link]"\n• "Your bank account is locked. Verify now: [link]"\n• "You won a prize! Click to claim: [link]"\n\nWarning signs:\n✗ Unknown sender numbers\n✗ Shortened URLs (bit.ly, tinyurl)\n✗ Urgent requests for personal info\n✗ Prizes or threats\n\nHow to stay safe:\n✓ Never click links in unsolicited texts\n✓ Verify by calling the company directly\n✓ Block & report spam numbers\n✓ Use your carrier's spam filter`
+  },
+  {
+    patterns: ['vishing','voice phishing','phone scam','fake call','scam call'],
+    answer: `VISHING (Voice Phishing)\n\nVishing = phone call scams where attackers impersonate banks, government agencies, or tech support.\n\nCommon scenarios:\n• "This is the IRS. You owe taxes. Pay now or be arrested."\n• "Your computer has a virus. Let us connect remotely."\n• "Your bank account shows suspicious activity."\n\nRed flags:\n✗ Caller creates panic or urgency\n✗ Asks for OTP, PIN, or card numbers\n✗ Requests gift card payments\n✗ Wants remote access to your computer\n\nRemember: Banks and government agencies NEVER ask for OTPs or passwords over phone calls.\n\nWhat to do: Hang up immediately. Call back on the official number from the company's website.`
+  },
+  {
+    patterns: ['password tips','password best practices','strong password','good password','secure password','password advice'],
+    answer: `PASSWORD BEST PRACTICES\n\nCreating strong passwords:\n✓ Minimum 12 characters (16+ is better)\n✓ Mix uppercase, lowercase, numbers, symbols\n✓ Use passphrases: "Purple$Monkey!Dishwasher9"\n✗ Avoid: names, birthdays, "password123", "qwerty"\n\nManaging passwords:\n✓ Use a password manager (Bitwarden, 1Password)\n✓ Use a UNIQUE password for every account\n✓ Never reuse passwords across sites\n✓ Change passwords if a site is breached\n\nExtra security:\n✓ Enable 2FA/MFA on every account that supports it\n✓ Never save passwords on shared computers\n✓ Never share passwords via email or chat\n\nQuick test: Is your password something you could remember in 20 years? If yes, it's probably too simple!`
+  },
+  {
+    patterns: ['password manager','bitwarden','1password','lastpass','keepass'],
+    answer: `PASSWORD MANAGERS\n\nA password manager securely stores all your passwords in an encrypted vault. You only need to remember ONE master password.\n\nTop free options:\n• Bitwarden — Open source, highly trusted, free tier is excellent\n• KeePass — Offline, open source, stores locally\n\nTop paid options:\n• 1Password — Great for families & teams\n• Dashlane — Includes dark web monitoring\n\nWhy use one?\n✓ Generates strong unique passwords automatically\n✓ Auto-fills login forms safely\n✓ Alerts you about reused/weak/breached passwords\n✓ Works across all your devices\n\nSetup tips:\n• Create a very strong master password (passphrase style)\n• Enable 2FA on the password manager itself\n• Back up your vault regularly`
+  },
+  {
+    patterns: ['what is 2fa','two factor','two-factor','multi factor','mfa','authenticator app','otp explanation'],
+    answer: `TWO-FACTOR AUTHENTICATION (2FA / MFA)\n\n2FA adds a second layer of security beyond just a password. Even if someone steals your password, they still can't log in without the second factor.\n\nThe 3 types of factors:\n1. Something you KNOW — Password, PIN\n2. Something you HAVE — Phone, hardware key (YubiKey)\n3. Something you ARE — Fingerprint, face ID\n\nCommon 2FA methods (best to worst):\n🏆 Hardware key (YubiKey) — Most secure\n🥈 Authenticator app (Google Auth, Authy) — Very secure\n🥉 SMS OTP — Convenient but can be intercepted\n❌ Email OTP — Least secure\n\nRecommended apps:\n• Google Authenticator\n• Microsoft Authenticator\n• Authy (supports backup)\n\nEnable 2FA on: Gmail, banking, social media, crypto, and any account with sensitive data.`
+  },
+  {
+    patterns: ['what is malware','malware definition','types of malware','malware explained'],
+    answer: `MALWARE\n\nMalware = malicious software designed to damage, disrupt, or gain unauthorized access to systems.\n\nTypes of malware:\n🔒 Ransomware — Encrypts your files and demands payment\n🕵️ Spyware — Secretly monitors your activity\n📡 Adware — Shows unwanted ads, can redirect browser\n🐎 Trojan — Disguises itself as legitimate software\n🪱 Worm — Self-replicates and spreads across networks\n💀 Virus — Attaches to files and spreads when opened\n🤖 Botnet — Turns your device into a remote-controlled zombie\n🔑 Keylogger — Records every keystroke you make\n\nHow malware spreads:\n→ Email attachments\n→ Malicious websites\n→ Infected USB drives\n→ Fake software downloads\n\nProtection:\n✓ Keep OS and software updated\n✓ Use reputable antivirus software\n✓ Don't download from untrusted sources\n✓ Back up your data regularly`
+  },
+  {
+    patterns: ['ransomware','ransomware attack','files encrypted','decrypt files','ransom payment'],
+    answer: `RANSOMWARE\n\nRansomware is malware that encrypts your files and demands a ransom (usually in cryptocurrency) to restore access.\n\nFamous attacks: WannaCry (2017), NotPetya, REvil, LockBit\n\nHow it works:\n1. Enters your system (email, malicious link, USB)\n2. Silently encrypts all your files\n3. Displays ransom note demanding payment\n4. Threatens to delete files or publish data\n\nPrevention:\n✓ Regular offline backups (3-2-1 rule)\n✓ Keep all software patched & updated\n✓ Don't open suspicious email attachments\n✓ Use endpoint protection / antivirus\n✓ Disable macros in Office documents\n\nIf you're attacked:\n• DO NOT pay the ransom (no guarantee of recovery)\n• Disconnect from the network immediately\n• Report to cybersecurity authorities\n• Restore from clean backups\n\nThe 3-2-1 backup rule: 3 copies, 2 different media, 1 offsite.`
+  },
+  {
+    patterns: ['trojan','trojan horse','trojan virus','remote access trojan','rat malware'],
+    answer: `TROJAN HORSE MALWARE\n\nA Trojan disguises itself as legitimate software to trick you into installing it. Once inside, it can:\n• Steal passwords and banking credentials\n• Give attackers remote access (RAT)\n• Download more malware\n• Spy on your webcam/microphone\n• Mine cryptocurrency\n\nCommon disguises:\n→ Free software downloads (games, tools, cracks)\n→ Fake antivirus programs\n→ Email attachments (invoices, receipts)\n→ Browser extensions\n\nSigns of infection:\n✗ Computer runs much slower\n✗ Unknown programs launching at startup\n✗ High CPU/network usage\n✗ Webcam light turns on unexpectedly\n\nPrevention:\n✓ Only download from official, trusted sources\n✓ Avoid software cracks/pirated tools\n✓ Use antivirus with real-time protection`
+  },
+  {
+    patterns: ['what is vpn','vpn meaning','how does vpn work','vpn explained','virtual private network'],
+    answer: `VPN (Virtual Private Network)\n\nA VPN encrypts your internet traffic and routes it through a server in another location, hiding your real IP address.\n\nWhat a VPN does:\n✓ Hides your IP address from websites\n✓ Encrypts data on public Wi-Fi\n✓ Bypasses geo-restrictions (streaming, blocked sites)\n✓ Prevents ISP from seeing your browsing history\n\nWhat a VPN does NOT do:\n✗ Make you completely anonymous\n✗ Protect against malware or phishing\n✗ Hide activity from the VPN provider itself\n\nWhen to use a VPN:\n• Public Wi-Fi (airports, cafes, hotels)\n• Accessing region-locked content\n• Protecting privacy from ISP tracking\n\nRecommended VPNs:\n• ProtonVPN — Best free tier, privacy-focused\n• Mullvad — No logs, strong privacy\n• ExpressVPN / NordVPN — Fast, popular options\n\nAvoid: Free VPNs from unknown companies (many sell your data).`
+  },
+  {
+    patterns: ['what is firewall','firewall meaning','how does firewall work','firewall explained'],
+    answer: `FIREWALL\n\nA firewall monitors and controls incoming/outgoing network traffic based on security rules. It acts as a barrier between your trusted network and untrusted networks.\n\nTypes of firewalls:\n• Network Firewall — Hardware device protecting an entire network\n• Host-based Firewall — Software on your device (Windows Firewall)\n• Web Application Firewall (WAF) — Protects web applications\n• Next-Gen Firewall (NGFW) — Deep packet inspection, AI-powered\n\nWhat firewalls block:\n✓ Unauthorized access attempts\n✓ Malicious incoming connections\n✓ Known malware communication\n✓ Port scanning attacks\n\nWhat firewalls don't stop:\n✗ Phishing emails\n✗ Malware from USB drives\n✗ Insider threats\n\nTips:\n• Always keep your OS firewall enabled\n• For home routers, change default admin passwords\n• Use firewall + antivirus for layered protection`
+  },
+  {
+    patterns: ['what is https','https vs http','ssl certificate','tls','secure connection','padlock icon'],
+    answer: `HTTPS & SSL/TLS\n\nHTTPS = HyperText Transfer Protocol Secure\n\nIt encrypts data transmitted between your browser and the website using SSL/TLS.\n\nHTTP vs HTTPS:\n• HTTP — Data sent in plain text (anyone can read it)\n• HTTPS — Data is encrypted (safe from eavesdropping)\n\nThe padlock icon means:\n✓ Your connection to the site is encrypted\n✓ The site has a valid SSL certificate\n✗ It does NOT mean the site is safe — phishing sites can have HTTPS too!\n\nSSL vs TLS:\n• SSL = Older, now deprecated\n• TLS = Modern, more secure version\n\nAlways check for HTTPS when:\n• Logging into any account\n• Entering payment details\n• Submitting personal information\n\nNever enter sensitive data on HTTP sites!`
+  },
+  {
+    patterns: ['data breach','my data leaked','account compromised','breach meaning','have i been hacked','haveibeenpwned'],
+    answer: `DATA BREACHES\n\nA data breach occurs when unauthorized parties access and steal sensitive data from a company's systems.\n\nWhat can be exposed:\n• Email addresses & passwords (often hashed)\n• Credit card numbers\n• Phone numbers & addresses\n• Social security numbers\n• Medical records\n\nHow to check if you're affected:\nVisit: haveibeenpwned.com — Enter your email to check if it appeared in any breach.\n\nIf you've been breached:\n1. Change your password on the affected site immediately\n2. Change it everywhere else if you reused it\n3. Enable 2FA on that account\n4. Monitor your bank statements\n5. Watch for phishing emails using your data\n\nMajor breaches in history:\n• Yahoo (2013) — 3 billion accounts\n• LinkedIn (2021) — 700 million users\n• Facebook (2019) — 533 million users\n\nPrevention: Use unique passwords + 2FA on every account.`
+  },
+  {
+    patterns: ['social engineering','manipulation attack','pretexting','baiting','quid pro quo'],
+    answer: `SOCIAL ENGINEERING\n\nSocial engineering exploits human psychology rather than technical vulnerabilities to trick people into giving up information or access.\n\nCommon techniques:\n• Phishing/Vishing/Smishing — Impersonation via email/phone/SMS\n• Pretexting — Creating a fabricated scenario ("I'm from IT support")\n• Baiting — Leaving infected USB drives for people to find\n• Quid pro quo — Offering something in exchange for info\n• Tailgating — Physically following someone into a secure area\n\nWhy it works:\n→ Exploits trust, fear, urgency, and helpfulness\n→ Humans are often the weakest security link\n→ No technical skills needed by attacker\n\nReal example: "Hi, this is Microsoft Support. Your PC is sending error reports. Let me help you fix it remotely." → They want your passwords and remote access.\n\nDefence:\n✓ Verify identity before giving any info\n✓ Be suspicious of unexpected requests\n✓ Follow your organization's security policies`
+  },
+  {
+    patterns: ['safe browsing','online safety','stay safe online','internet safety','browsing securely'],
+    answer: `HOW TO STAY SAFE ONLINE\n\nEssential habits:\n✓ Use strong, unique passwords everywhere\n✓ Enable 2FA on every account\n✓ Keep browser, OS, and apps updated\n✓ Use HTTPS websites (look for the padlock)\n✓ Don't click links in unsolicited emails/texts\n\nBrowser security:\n✓ Use trusted browsers (Chrome, Firefox, Edge, Brave)\n✓ Install uBlock Origin ad blocker\n✓ Be cautious with browser extensions\n✓ Enable Safe Browsing features\n\nPublic Wi-Fi safety:\n✓ Use a VPN on public networks\n✗ Never access banking on public Wi-Fi without VPN\n\nDownloads:\n✓ Only download from official sources\n✗ Avoid torrents and "cracked" software\n✗ Scan downloads with antivirus before opening\n\nSocial media:\n✓ Set accounts to private\n✓ Don't overshare personal information\n✓ Review app permissions regularly`
+  },
+  {
+    patterns: ['network security','wifi security','router security','home network','secure wifi','wpa2','wpa3'],
+    answer: `NETWORK & WI-FI SECURITY\n\nSecuring your home router:\n✓ Change the default admin username & password\n✓ Use WPA3 encryption (or WPA2 minimum — never WEP)\n✓ Set a strong Wi-Fi password (20+ chars)\n✓ Keep router firmware updated\n✓ Disable WPS (it has known vulnerabilities)\n✓ Enable router firewall\n✓ Create a guest network for visitors/IoT devices\n\nNetwork protocols ranked by security:\n🏆 WPA3 — Most modern and secure\n✅ WPA2 — Still acceptable, use AES (not TKIP)\n⚠️ WPA — Outdated, avoid\n❌ WEP — Completely broken, never use\n\nSigns your network may be compromised:\n✗ Unknown devices connected\n✗ Router settings changed without your action\n✗ Slower than usual internet speeds\n✗ Browser redirecting to strange sites`
+  },
+  {
+    patterns: ['antivirus','best antivirus','do i need antivirus','virus protection','windows defender'],
+    answer: `ANTIVIRUS & ENDPOINT PROTECTION\n\nDo you need antivirus?\nYES — especially on Windows. macOS and Linux are less targeted but not immune.\n\nBuilt-in options (Free):\n• Windows Defender — Actually excellent now, Microsoft built-in\n• XProtect (macOS) — Basic built-in protection\n\nFree third-party antivirus:\n• Malwarebytes (Free) — Great for on-demand scanning\n• Avast / AVG Free — Good but show lots of ads\n• Bitdefender Free — Lightweight and effective\n\nPaid options (best protection):\n• Bitdefender Total Security — Top detection rates\n• Norton 360 — Good all-around suite\n\nBest practices:\n✓ Keep virus definitions updated (auto-update)\n✓ Run regular full scans weekly\n✓ Use Malwarebytes alongside main antivirus\n✓ Don't install multiple antivirus (they conflict)\n✓ Antivirus alone isn't enough — safe behavior matters more!`
+  },
+  {
+    patterns: ['what is encryption','encryption explained','encrypt files','aes','end to end encryption','e2e'],
+    answer: `ENCRYPTION\n\nEncryption converts readable data into unreadable ciphertext that can only be decrypted with the correct key.\n\nTypes of encryption:\n• Symmetric — Same key for encrypt & decrypt (AES, fast)\n• Asymmetric — Public key encrypts, private key decrypts (RSA, used in HTTPS)\n• End-to-End (E2E) — Only sender and receiver can read messages\n\nCommon encryption standards:\n🏆 AES-256 — Gold standard for file/disk encryption\n🔑 RSA-2048/4096 — Used in certificates, SSH\n📱 Signal Protocol — Used in WhatsApp, Signal (E2E messaging)\n\nWhere encryption is used:\n• HTTPS websites (TLS/SSL)\n• WhatsApp, Signal messages (E2E)\n• Password managers (vault encryption)\n• BitLocker / FileVault (disk encryption)\n\nApps with strong E2E encryption:\n✓ Signal — Best, fully open source\n✓ WhatsApp — Good (uses Signal protocol)\n✓ Telegram — E2E only in "Secret Chats"\n✗ Regular SMS — NOT encrypted`
+  },
+  {
+    patterns: ['dark web','darknet','tor browser','onion sites','deep web'],
+    answer: `DARK WEB & DEEP WEB\n\nThe internet has 3 layers:\n• Surface Web — Indexed by Google (only ~4% of all content)\n• Deep Web — Not indexed (emails, banking, databases, ~96%)\n• Dark Web — Requires Tor browser, intentionally hidden\n\nWhat is the Dark Web?\nPart of the internet only accessible via Tor. It anonymizes traffic by bouncing it through multiple servers.\n\nWhat's on the Dark Web?\n• Privacy forums and journalism (legitimate uses)\n• Stolen credentials & credit cards for sale\n• Illegal marketplaces (drugs, weapons, hacking services)\n• Leaked databases from data breaches\n\nShould you be worried?\nIf your data was in a breach, it may already be on dark web forums. Use haveibeenpwned.com to check.\n\nMonitoring your exposure:\n✓ Some password managers offer dark web monitoring\n✓ Google's free "Dark Web Report" checks your email`
+  },
+  {
+    patterns: ['identity theft','id theft','someone stole my identity'],
+    answer: `IDENTITY THEFT\n\nIdentity theft = someone stealing your personal information to commit fraud (open accounts, take loans, make purchases in your name).\n\nHow thieves get your info:\n→ Data breaches\n→ Phishing attacks\n→ Physical mail theft\n→ Dumpster diving (unshredded documents)\n→ Social media oversharing\n\nWarning signs:\n✗ Unknown accounts on your credit report\n✗ Bills or calls for debts you don't owe\n✗ Tax return rejected (someone filed first)\n✗ Unfamiliar transactions on bank statements\n\nIf you're a victim:\n1. File a police report\n2. Contact your bank immediately\n3. Freeze your credit\n4. Report to national fraud authority\n5. Change passwords on all accounts\n\nPrevention:\n✓ Shred sensitive documents\n✓ Use credit monitoring services\n✓ Monitor bank statements weekly`
+  },
+  {
+    patterns: ['iot security','smart home security','smart devices','internet of things'],
+    answer: `IoT (SMART HOME) SECURITY\n\nIoT devices (smart TVs, cameras, doorbells, thermostats) are often poorly secured and are major attack targets.\n\nCommon IoT risks:\n• Default passwords never changed\n• Firmware rarely updated\n• Weak or no encryption\n• Used as entry points into your network\n\nSecurity steps:\n✓ Change default username & password immediately\n✓ Keep firmware/software updated\n✓ Put IoT devices on a separate guest network\n✓ Disable features you don't use (UPnP, remote access)\n✓ Buy from reputable manufacturers\n\nWorst IoT practices (avoid!):\n✗ Using "admin/admin" or "admin/password"\n✗ Connecting cameras directly to the internet\n✗ Ignoring security update notifications`
+  },
+  {
+    patterns: ['zero day','0day','zero-day','unpatched vulnerability','exploit'],
+    answer: `ZERO-DAY VULNERABILITIES\n\nA zero-day (0-day) is a software vulnerability that:\n• Is unknown to the software vendor\n• Has no patch/fix available yet\n• Can be exploited by attackers immediately\n\nWhy "zero-day"?\nThe vendor has had "zero days" to fix it since it's unknown to them.\n\nWho finds zero-days?\n• Security researchers (report responsibly)\n• Bug bounty hunters (earn rewards)\n• Criminal hackers (sell on dark web)\n• Nation-state hackers (use for espionage/warfare)\n\nReal examples:\n• EternalBlue — NSA exploit used in WannaCry\n• Log4Shell (2021) — Critical Java logging bug\n• Heartbleed (2014) — OpenSSL encryption flaw\n\nHow to protect yourself:\n✓ Keep all software updated (patches close known holes)\n✓ Use layered security (firewall + antivirus + 2FA)\n✓ Follow security news (CVE databases)`
+  },
+  {
+    patterns: ['ddos','denial of service','dos attack','what is ddos'],
+    answer: `DDoS ATTACKS (Distributed Denial of Service)\n\nA DDoS attack floods a server, website, or network with massive traffic to make it unavailable to legitimate users.\n\nHow it works:\n1. Attackers infect thousands of devices with malware (botnet)\n2. All infected devices simultaneously send requests to the target\n3. The target is overwhelmed and crashes or becomes unreachable\n\nTypes:\n• Volumetric — Floods bandwidth (Gbps-scale attacks)\n• Protocol — Exploits network protocol weaknesses (SYN floods)\n• Application Layer — Targets web apps (HTTP floods)\n\nWho gets targeted?\n→ Online gaming servers, banking, news websites, e-commerce\n\nProtection measures:\n✓ Use a CDN with DDoS protection (Cloudflare, Akamai)\n✓ Rate limiting on web servers\n✓ Traffic filtering / scrubbing services`
+  },
+  {
+    patterns: ['man in the middle','mitm','eavesdropping attack','intercepting traffic'],
+    answer: `MAN-IN-THE-MIDDLE (MITM) ATTACKS\n\nIn a MITM attack, an attacker secretly intercepts and potentially alters communication between two parties.\n\nHow it works:\nYou ←→ [Attacker intercepts] ←→ Bank Website\nBoth you and the bank think you're talking directly to each other.\n\nCommon MITM scenarios:\n• Public Wi-Fi attacks — Attacker sets up fake "Free Wi-Fi" hotspot\n• ARP Poisoning — Redirects local network traffic to attacker\n• SSL Stripping — Downgrades HTTPS to HTTP to read data\n• DNS Spoofing — Redirects you to fake websites\n\nSigns you might be a victim:\n✗ Unexpected certificate warnings in browser\n✗ Slower than usual connections\n✗ Being logged out of accounts randomly\n\nPrevention:\n✓ Use HTTPS always\n✓ Use VPN on public networks\n✓ Never ignore SSL certificate errors`
+  },
+  {
+    patterns: ['sql injection','sqli','database attack','injection attack'],
+    answer: `SQL INJECTION\n\nSQL Injection is one of the oldest and most common web attacks. It exploits poor input validation to manipulate database queries.\n\nHow it works:\nA login form normally checks:\nSELECT * FROM users WHERE username='input' AND password='input'\n\nAttacker enters: admin' OR '1'='1\nThis becomes: ...WHERE username='admin' OR '1'='1'...\nSince '1'='1' is always true → bypasses login!\n\nWhat attackers can do:\n• Log in without credentials\n• Dump entire database contents\n• Delete or modify data\n• Execute commands on the server\n\nPrevention (for developers):\n✓ Use parameterized queries / prepared statements\n✓ Input validation and sanitization\n✓ Use Web Application Firewall (WAF)\n✓ Regular security testing (OWASP Top 10)`
+  },
+  {
+    patterns: ['cybersecurity tips','security best practices','protect yourself','basic security','cyber hygiene'],
+    answer: `CYBERSECURITY BEST PRACTICES\n\nThe Essential 10:\n\n1. Use unique, strong passwords everywhere\n2. Enable 2FA on all important accounts\n3. Keep all software and OS updated\n4. Use reputable antivirus software\n5. Back up data regularly (3-2-1 rule)\n6. Be suspicious of unexpected emails/links\n7. Use HTTPS websites for sensitive activities\n8. Use VPN on public Wi-Fi\n9. Lock your devices with PIN/biometric\n10. Limit what personal info you share online\n\nThe 3-2-1 Backup Rule:\n• 3 copies of your data\n• 2 different storage media types\n• 1 copy stored offsite (cloud counts!)\n\nRemember: You are your own best security tool. Attackers exploit human behavior more than technology.`
+  },
+  {
+    patterns: ['what is cybersecurity','cybersecurity meaning','cyber security definition'],
+    answer: `WHAT IS CYBERSECURITY?\n\nCybersecurity is the practice of protecting systems, networks, and data from digital attacks, unauthorized access, damage, or theft.\n\nKey domains:\n• Network Security — Protecting network infrastructure\n• Application Security — Securing software and apps\n• Endpoint Security — Protecting devices (PCs, phones)\n• Cloud Security — Securing cloud-based systems\n• Information Security — Protecting data integrity & privacy\n\nThe CIA Triad (core principles):\nConfidentiality — Data accessible only to authorized users\nIntegrity — Data is accurate and unaltered\nAvailability — Systems are accessible when needed\n\nWhy it matters:\n• Cybercrime costs the global economy $8+ trillion/year\n• A cyberattack occurs every 39 seconds on average\n• 95% of breaches involve human error\n\nCareer paths: Security analyst, pen tester, CISO, forensic investigator, security engineer.`
+  },
+  {
+    patterns: ['types of hackers','black hat','white hat','grey hat','ethical hacker','penetration tester','hacker'],
+    answer: `TYPES OF HACKERS\n\nHackers are categorized by their intent:\n\nWhite Hat (Ethical Hackers)\n• Security professionals who hack with permission\n• Find vulnerabilities to fix them\n• Work as pen testers, bug bounty hunters\n\nBlack Hat (Criminal Hackers)\n• Hack without permission for personal gain\n• Steal data, deploy malware, extort victims\n\nGrey Hat\n• Hack without permission but without malicious intent\n• May find vulnerabilities and notify the company\n• Their actions are still technically illegal\n\nOther types:\n• Script Kiddies — Use existing tools without understanding\n• Hacktivists — Hack for political/social causes (Anonymous)\n• Nation-State Hackers — Government-sponsored cyber espionage\n• Insider Threats — Employees abusing their access\n\nEthical hacking certifications: CEH, OSCP, CompTIA Security+`
+  },
+  {
+    patterns: ['cookie','browser cookie','tracking cookies','clear cookies'],
+    answer: `BROWSER COOKIES & PRIVACY\n\nCookies are small text files websites store in your browser to remember information about you.\n\nTypes of cookies:\n• Session cookies — Temporary, deleted when browser closes\n• Persistent cookies — Stored for a set period\n• First-party — Set by the website you're visiting\n• Third-party — Set by other domains (ads, trackers) — PRIVACY CONCERN\n\nPrivacy risks:\n• Third-party cookies build a profile of your entire web activity\n• Cross-site tracking follows you across the internet\n\nHow to manage cookies:\n✓ Block third-party cookies in browser settings\n✓ Use browser extensions (uBlock Origin, Privacy Badger)\n✓ Clear cookies regularly\n✓ Use Firefox or Brave for better privacy defaults\n✓ Use incognito mode for sensitive browsing`
+  },
+  {
+    patterns: ['backup','data backup','how to backup','backup strategy','3-2-1'],
+    answer: `DATA BACKUP STRATEGY\n\nThe 3-2-1 Backup Rule — The gold standard:\n• 3 copies of your data\n• 2 different storage types (SSD + cloud, HDD + USB)\n• 1 offsite copy (cloud or physical off-premises)\n\nBackup options:\nCloud backup: Google Drive, OneDrive, Backblaze, iCloud\nLocal: External HDD/SSD, NAS (Network Attached Storage)\nOffline: USB drives (great for ransomware protection)\n\nBackup frequency guidelines:\n• Critical files: Daily\n• Work documents: Daily or real-time sync\n• Full system image: Weekly\n\nImportant rules:\n✓ Test your backups — can you actually restore them?\n✓ Backup before major software updates\n✓ Keep at least one backup disconnected (air-gapped)\n✓ Encrypt backups containing sensitive data\n\nData that doesn't exist in 3 places doesn't really exist!`
+  },
+  {
+    patterns: ['what is tor','tor browser','onion routing','anonymity online','tor network'],
+    answer: `TOR (THE ONION ROUTER)\n\nTor is a free anonymity network that routes your internet traffic through multiple encrypted layers across volunteer-operated servers worldwide.\n\nHow Tor works:\nYour data → Encrypted 3 times → Entry node → Middle node → Exit node → Destination\nEach node only knows the previous and next node, not the full path.\n\nLegitimate uses of Tor:\n✓ Journalists & activists in repressive regimes\n✓ Whistleblowers\n✓ Privacy-conscious general browsing\n\nLimitations:\n• Significantly slower than regular internet\n• Exit nodes can see unencrypted traffic\n• Not completely anonymous if you log into accounts\n\nTor vs VPN:\n• VPN — Faster, hides traffic from ISP, trust the VPN company\n• Tor — Slower, distributed trust, better for strong anonymity\n• Best combo: Use Tor + VPN for maximum privacy`
+  },
+  {
+    patterns: ['public wifi','wifi safety','unsafe wifi','coffee shop wifi','airport wifi'],
+    answer: `PUBLIC WI-FI DANGERS\n\nPublic Wi-Fi is one of the biggest cybersecurity risks for everyday users.\n\nRisks on public Wi-Fi:\n• Evil Twin Attacks — Attacker creates a fake hotspot named "Starbucks_Free"\n• Packet Sniffing — Capturing unencrypted data passing through the network\n• MITM Attacks — Intercepting your communications\n• Session Hijacking — Stealing login session tokens\n\nWhat attackers can steal:\n→ Passwords (if using HTTP)\n→ Session cookies\n→ Emails and messages\n→ Files being transferred\n\nSafe practices:\n✓ Use a VPN (encrypts all your traffic)\n✓ Only visit HTTPS websites\n✓ Avoid banking and sensitive logins\n✓ Forget the network after use\n✓ Use your phone's mobile hotspot instead\n✗ Never connect to "Free_WiFi" or generic names\n✗ Never allow auto-connect to open networks`
+  },
+  {
+    patterns: ['hello','hi','hey','greetings','good morning','good evening','what can you do','help me','help'],
+    answer: `Hello! I'm your offline cybersecurity AI assistant.\n\nI can answer questions about:\n\n• Phishing & email scams\n• Passwords & password managers\n• 2FA & multi-factor authentication\n• Malware, ransomware & viruses\n• VPN, firewall & network security\n• Data backup strategies\n• Encryption & HTTPS\n• Data breaches & dark web\n• Social engineering attacks\n• Safe browsing habits\n• Mobile & IoT security\n• General cybersecurity tips\n• DDoS, MITM, SQL injection & more!\n\nJust type your question or click one of the topic chips above!`
+  },
+  {
+    patterns: ['thank you','thanks','great','awesome','helpful','good job','well done','nice'],
+    answer: `You're welcome! Stay safe online.\n\nRemember the golden rules:\n✓ Strong unique passwords + password manager\n✓ 2FA on everything important\n✓ Think before you click\n✓ Keep software updated\n✓ Back up your data\n\nFeel free to ask anything else about cybersecurity!`
+  }
+];
+
+// ── SMART MATCHING ENGINE ─────────────────────────────────
+function findAnswer(query) {
+  const q = query.toLowerCase().trim();
+
+  // Step 1: Direct phrase match
+  for (const entry of KB) {
+    for (const pattern of entry.patterns) {
+      if (q.includes(pattern)) return entry.answer;
+    }
+  }
+
+  // Step 2: Word-level scoring
+  const words = q.split(/\s+/).filter(w => w.length > 2);
+  let bestScore = 0;
+  let bestAnswer = null;
+
+  for (const entry of KB) {
+    let score = 0;
+    for (const pattern of entry.patterns) {
+      const pWords = pattern.split(/\s+/);
+      for (const pw of pWords) {
+        if (pw.length > 2 && q.includes(pw)) score += pw.length;
+      }
+      const matched = words.filter(w => pattern.includes(w)).length;
+      score += matched * 3;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestAnswer = entry.answer;
+    }
+  }
+
+  if (bestScore >= 4) return bestAnswer;
+
+  // Fallback
+  return `I don't have a specific answer for that, but here's what I can help with:\n\nPhishing — "What is phishing?" or "How to spot fake emails?"\nPasswords — "Best password practices" or "What is a password manager?"\n2FA — "What is 2FA?" or "How does two-factor authentication work?"\nMalware — "What is malware?" or "What is ransomware?"\nVPN — "What is a VPN?" or "How does VPN work?"\nGeneral — "How to stay safe online?" or "Cybersecurity tips"\nEmail — "How to spot a fake email?" or "What is smishing?"\nHTTPS — "What is HTTPS?" or "Is this site safe?"\nBreaches — "What is a data breach?" or "Was my data leaked?"\n\nTry rephrasing your question or click one of the topic chips above!`;
+}
+
+// ── TYPING EFFECT ─────────────────────────────────────────
+function typeMessage(el, text, speed = 5) {
+  el.textContent = '';
+  let i = 0;
+  const c = document.getElementById('chatbot-messages');
+  const interval = setInterval(() => {
+    el.textContent += text[i++];
+    c.scrollTop = c.scrollHeight;
+    if (i >= text.length) clearInterval(interval);
+  }, speed);
+}
+
+function setPrompt(text) {
+  document.getElementById('chatbot-input').value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatbot-input');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  input.value = '';
+  const thinkEl = addMsg('bot thinking', '⠋ Thinking...');
+  setTimeout(() => {
+    thinkEl.remove();
+    const answer = findAnswer(text);
+    const botEl = addMsg('bot', '');
+    typeMessage(botEl, answer);
+  }, 350 + Math.random() * 250);
+}
+
+function addMsg(cls, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.textContent = text;
+  const c = document.getElementById('chatbot-messages');
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+  return div;
+}
+
+function analyzeEmail() {
+  const h = document.getElementById('email-header-input').value.toLowerCase();
+  const res = document.getElementById('email-result');
+  if (!h.trim()) { showResult(res, 'Please paste email headers first.', 'warn'); return; }
+  const issues = [];
+  if (!h.includes('spf')) issues.push('Missing SPF record');
+  if (!h.includes('dkim')) issues.push('Missing DKIM signature');
+  if (!h.includes('dmarc')) issues.push('No DMARC policy found');
+  if (/fake|phish|spam|cheap|win|prize|urgent|verify|suspended/.test(h)) issues.push('Suspicious keywords detected');
+  if (/\.ru|\.cn|\.tk|\.ml|\.ga|\.cf/.test(h)) issues.push('High-risk TLD in domain');
+  if (/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(h)) issues.push('IP address found in headers (suspicious)');
+  if (issues.length === 0) showResult(res, 'SAFE — SPF, DKIM & DMARC all present. No suspicious signals found.', 'ok');
+  else if (issues.length <= 2) showResult(res, 'WARNINGS:\n• ' + issues.join('\n• '), 'warn');
+  else showResult(res, 'HIGH RISK:\n• ' + issues.join('\n• ') + '\n\nDo not click any links in this email.', 'danger');
+}
+
+function checkPassword() {
+  const pwd = document.getElementById('password-input').value;
+  const fill = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  const checks = {
+    'tip-len': pwd.length >= 8,
+    'tip-upper': /[A-Z]/.test(pwd),
+    'tip-num': /[0-9]/.test(pwd),
+    'tip-sym': /[^A-Za-z0-9]/.test(pwd)
+  };
+  let score = Object.values(checks).filter(Boolean).length;
+  if (pwd.length >= 16) score = Math.min(score + 1, 4);
+  Object.entries(checks).forEach(([id, ok]) => document.getElementById(id).classList.toggle('pass', ok));
+  const levels = [
+    { label: 'Very Weak', color: '#ff3e6c', w: '15%' },
+    { label: 'Weak', color: '#ff6b35', w: '30%' },
+    { label: 'Fair', color: '#ffab00', w: '55%' },
+    { label: 'Strong', color: '#69f0ae', w: '80%' },
+    { label: 'Very Strong', color: '#00e676', w: '100%' }
+  ];
+  if (!pwd) { fill.style.width = '0'; label.textContent = 'Enter a password'; label.style.color = 'var(--dim)'; return; }
+  const lv = levels[Math.min(score, 4)];
+  fill.style.width = lv.w; fill.style.background = lv.color;
+  label.textContent = lv.label; label.style.color = lv.color;
+}
+
+function toggleCheck(el) {
+  const cb = el.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  el.classList.toggle('checked', cb.checked);
+}
+
+function checkFraud() {
+  const checks = document.querySelectorAll('.fraud-check');
+  const checked = Array.from(checks).filter(c => c.checked).length;
+  const res = document.getElementById('fraud-result');
+  if (checked === 0) showResult(res, 'No red flags detected — appears safe. Stay cautious.', 'ok');
+  else if (checked === 1) showResult(res, '1 red flag detected — proceed with extreme caution. Do not share personal info.', 'warn');
+  else if (checked <= 2) showResult(res, checked + ' red flags — highly suspicious. Do not share any information or click links.', 'warn');
+  else showResult(res, checked + ' red flags — VERY LIKELY A SCAM.\nBlock the sender and report immediately. Do NOT respond or send money.', 'danger');
+}
+
+function showResult(el, text, type) {
+  el.textContent = text;
+  el.className = 'result-box show ' + type;
+}
+</script>
+</body>
+</html>
