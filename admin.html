@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login | PhishGuard</title>
+  <script nonce="YcjbpxusaA5wSBwo" type="text/javascript" src="//self.adblockultimate.net/manager.js?tm=1774955694&amp;lg=true" guid="{EE7A232E-1DA0-4A8F-BCAD-3C922AD565AF}" inwhitelist="false" status="true" autohide="true"></script><link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c14;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --border: rgba(99,102,241,0.15);
+      --card: rgba(13,20,36,0.9);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .login-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 60px rgba(99,102,241,0.08);
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      justify-content: center;
+    }
+
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .brand-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-name span { color: var(--accent2); }
+
+    .login-title {
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .login-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(8,12,20,0.8);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+      font-family: 'Inter', sans-serif;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+    }
+
+    .error {
+      color: #f87171;
+      font-size: 0.82rem;
+      text-align: center;
+      margin-top: 14px;
+      display: none;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      transition: color 0.3s;
+    }
+
+    .back-link:hover { color: var(--accent2); }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="brand-icon">🛡️</div>
+      <span class="brand-name">Phish<span>Guard</span></span>
+    </div>
+    <div class="login-title">Admin Access</div>
+    <div class="login-sub">Sign in to view scan history</div>
+
+    <label>Username</label>
+    <input type="text" id="username" placeholder="admin" />
+
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" />
+
+    <button onclick="login()">Sign In →</button>
+
+    <div class="error" id="errorMsg">❌ Invalid username or password</div>
+
+    <a href="index.html" class="back-link">← Back to PhishGuard</a>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('https://portfolio-backend-0uic.onrender.com/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('adminToken', data.token);
+          window.location.href = 'dashboard.html';
+        } else {
+          errorMsg.style.display = 'block';
+        }
+      } catch {
+        errorMsg.textContent = '❌ Cannot connect to server.';
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    document.addEventListener('keypress', e => { if (e.key === 'Enter') login(); });
+  </script>
+
+</body>
+</html>
